@@ -9,7 +9,7 @@ exports.viewCountUpdater = functions
     .schedule("every 6 hours")
     // eslint-disable-next-line no-unused-vars
     .onRun((context) => {
-      db.collectionGroup("counters").get().then((querySnapshot) => {
+      return db.collectionGroup("counters").get().then((querySnapshot) => {
         const comicAggregated = {};
         const chapterAggregated = {};
         querySnapshot.forEach((doc) => {
@@ -38,6 +38,7 @@ exports.viewCountUpdater = functions
         });
 
         const comicIds = Object.keys(comicAggregated);
+        const promises = [];
         if (comicIds.length > 0) {
           comicIds.forEach((comicId) => {
             db.collection("comics").doc(comicId).update({
@@ -48,17 +49,20 @@ exports.viewCountUpdater = functions
               const comicCptIds = Object.keys(chapterAggregated[comicId]);
               if (comicCptIds.length > 0) {
                 comicCptIds.forEach((cptId) => {
-                  db.collection("comics")
-                      .doc(comicId)
-                      .collection("chapters")
-                      .doc(cptId)
-                      .update({
-                        view_count: chapterAggregated[comicId][cptId],
-                      });
+                  promises.push(
+                      db.collection("comics")
+                          .doc(comicId)
+                          .collection("chapters")
+                          .doc(cptId)
+                          .update({
+                            view_count: chapterAggregated[comicId][cptId],
+                          }),
+                  );
                 });
               }
             }
           });
         }
+        return Promise.all(promises);
       });
     });

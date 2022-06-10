@@ -10,5 +10,5 @@ exports.onDeleteUser = functions
     .onDelete((user) => {
       const uid = user.uid;
       db.collection("user_roles").doc(uid).delete();
-      db.collection("users").doc(uid).delete();
+      return db.collection("users").doc(uid).delete();
     });

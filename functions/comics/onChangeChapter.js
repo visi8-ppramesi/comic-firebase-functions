@@ -10,7 +10,7 @@ exports.onUpdateChapter = functions
     // eslint-disable-next-line no-unused-vars
     .onUpdate((snap, context) => {
       const comicId = context.params.comicId;
-      db.collection("comics")
+      return db.collection("comics")
           .doc(comicId)
           .update({
             last_update: new Date(),
@@ -24,7 +24,7 @@ exports.onCreateChapter = functions
     // eslint-disable-next-line no-unused-vars
     .onCreate((snap, context) => {
       const comicId = context.params.comicId;
-      db.collection("comics")
+      return db.collection("comics")
           .doc(comicId)
           .update({
             last_update: new Date(),
@@ -38,7 +38,7 @@ exports.onDeleteChapter = functions
     // eslint-disable-next-line no-unused-vars
     .onDelete((snap, context) => {
       const comicId = context.params.comicId;
-      db.collection("comics")
+      return db.collection("comics")
           .doc(comicId)
           .update({
             last_update: new Date(),

@@ -10,7 +10,7 @@ exports.onCreateUser = functions
     .onCreate((user) => {
       const uid = user.uid;
       db.collection("user_roles").doc(uid).set({roles: ["user"]});
-      db.collection("users")
+      return db.collection("users")
           .doc(uid)
           .set({email_verified_at: null}, {merge: true});
     });

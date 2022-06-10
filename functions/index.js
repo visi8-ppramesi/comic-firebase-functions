@@ -2,7 +2,7 @@ exports.onCreateUser = require("./auth/onCreateUser.js");
 exports.onDeleteUser = require("./auth/onDeleteUser.js");
 exports.viewCountUpdater = require("./comics/viewCountUpdater.js");
 exports.testCall = require("./test/testCall.js");
-exports.createGopayCharge = require('./payment/createGopayCharge.js')
+exports.createGopayCharge = require("./payment/createGopayCharge.js");
 const {
   onUpdateChapter,
   onCreateChapter,
@@ -11,6 +11,10 @@ const {
 exports.onUpdateChapter = onUpdateChapter;
 exports.onCreateChapter = onCreateChapter;
 exports.onDeleteChapter = onDeleteChapter;
+const {
+  onUpdateUser,
+} = require("./user/onChangeUser.js");
+exports.onUpdateUser = onUpdateUser;
 // const functions = require("firebase-functions");
 
 // // Create and Deploy Your First Cloud Functions
