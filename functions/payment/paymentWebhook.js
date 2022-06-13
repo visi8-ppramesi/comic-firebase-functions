@@ -40,18 +40,34 @@ app.post("/", async (req, res) => {
           return acc
         }, {})
         const orderPath = getObjectPath(orderSnap.docs[0].ref.path.split('/'))
-        const userRef = db.collection('users').doc(orderPath['users'])
-        return orderSnap.docs[0].ref.update({
+        const batchProc = db.batch()
+        batchProc.update(orderSnap.docs[0].ref, {
           status: 'closed',
           charge_data: body
-        }).then(() => {
-          const promises = Object.keys(refs).forEach((comicKey) => {
-            return userRef.collection('purchased_comics').doc(comicKey).update({
-              chapters: admin.firestore.FieldValue.arrayUnion(...refs[comicKey])
-            })
-          })
-          return Promise.all(promises)
         })
+        Object.keys(refs).forEach((comicKey) => {
+          batchProc.set(
+            db.collection('users').doc(orderPath['users'])
+              .collection('purchased_comics').doc(comicKey),
+            {
+              chapters: admin.firestore.FieldValue.arrayUnion(...refs[comicKey])
+            },
+            {merge: true}
+          )
+        })
+        return batchProc.commit()
+        // return orderSnap.docs[0].ref.update({
+        //   status: 'closed',
+        //   charge_data: body
+        // }).then(() => {
+        //   const promises = Object.keys(refs).forEach((comicKey) => {
+        //     return db.collection('users').doc(orderPath['users'])
+        //       .collection('purchased_comics').doc(comicKey).set({
+        //         chapters: admin.firestore.FieldValue.arrayUnion(...refs[comicKey])
+        //       }, {merge: true})
+        //   })
+        //   return Promise.all(promises)
+        // })
       }else if(
         body.transaction_status == 'deny' || 
         body.transaction_status == 'cancel' || 
