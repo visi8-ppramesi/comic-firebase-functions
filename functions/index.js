@@ -2,7 +2,8 @@ exports.onCreateUser = require("./auth/onCreateUser.js");
 exports.onDeleteUser = require("./auth/onDeleteUser.js");
 exports.viewCountUpdater = require("./comics/viewCountUpdater.js");
 exports.testCall = require("./test/testCall.js");
-exports.createGopayCharge = require("./payment/createGopayCharge.js");
+exports.createChapterGopayCharge = require("./payment/createChapterGopayCharge.js");
+exports.createComicGopayCharge = require("./payment/createComicGopayCharge.js");
 
 const {
   onUpdateChapter,
