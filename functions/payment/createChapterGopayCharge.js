@@ -6,20 +6,54 @@ const db = admin.firestore();
 exports.createChapterGopayCharge = functions
     .region("asia-east2")
     .https
-    .onCall((data, context) => {
+    .onCall(async (data, context) => {
+      const {grossAmount, userId, tax, fee} = data.transactionDetails;
+      const itemsDetails = data.itemsDetails;
+      let totalItemsPrice = 0;
+
+      const priceCheckPromises = itemsDetails.map((itemDetails) => {
+        const {chapterId, comicId, itemPrice} = itemDetails;
+        return db
+            .collection("comics").doc(comicId)
+            .collection("chapters").doc(chapterId)
+            .get().then((chapterDoc) => {
+              totalItemsPrice += chapterDoc.data().price;
+              return itemPrice == chapterDoc.data().price;
+            });
+      });
+
+      const itemsPriceCheck = await Promise.all(priceCheckPromises).then((checks) => {
+        return checks.reduce((acc, v) => acc && v, true);
+      });
+
+      const myTaxRate = 0.11; // change later into settings
+      const myTax = totalItemsPrice * myTaxRate;
+      const myFee = 0; // change later into settings
+      const myTotal = totalItemsPrice + myTax + myFee;
+
+      const totalPriceCheck = myTotal == grossAmount;
+
+      if (!(itemsPriceCheck && totalPriceCheck)) {
+        return "price check failed";
+      }
+
       const createChapterOrder = (orderId) => {
-        const {grossAmount, userId} = data.transactionDetails;
-        const {chapterId, comicId, chapterNum, comicName} = data.chapterDetails;
+        const items = itemsDetails.map((itemDetails) => {
+          const {chapterId, comicId, chapterNum, comicName, itemPrice} = itemDetails;
+          return {
+            name: comicName + ":" + chapterNum,
+            description: comicName + ", chapter " + chapterNum,
+            reference: db.collection("comics").doc(comicId).collection("chapters").doc(chapterId),
+            price: itemPrice,
+          };
+        });
         return db.collection("users").doc(userId).collection("orders").add({
           status: "open",
           order_id: orderId,
           total_amount: grossAmount,
           created_date: new Date(),
-          items: [{
-            name: comicName + ":" + chapterNum,
-            description: comicName + ", chapter " + chapterNum,
-            reference: db.collection("comics").doc(comicId).collection("chapters").doc(chapterId),
-          }],
+          tax, fee,
+          items: items,
         });
       };
 

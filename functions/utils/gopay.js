@@ -1,6 +1,15 @@
 exports.fetchGopayCharge = (data, orderId) => {
-  const {grossAmount} = data.transactionDetails;
+  const {grossAmount, tax, fee} = data.transactionDetails;
   const {email, fullName} = data.customerDetails;
+  const itemsDetails = data.itemsDetails;
+  const items = itemsDetails.map((itemDetails) => {
+    const {chapterNum, comicName, itemPrice} = itemDetails;
+    return {
+      name: comicName + ":" + chapterNum,
+      description: comicName + ", chapter " + chapterNum,
+      price: itemPrice,
+    };
+  });
   let firstName; let lastName;
   if (fullName.split(" ").length < 2) {
     firstName = fullName;
@@ -23,6 +32,9 @@ exports.fetchGopayCharge = (data, orderId) => {
     "transaction_details": {
       "gross_amount": grossAmount,
       "order_id": orderId,
+      "tax": tax,
+      "fee": fee,
+      "items": items,
     },
     "customer_details": {
       "first_name": firstName,
