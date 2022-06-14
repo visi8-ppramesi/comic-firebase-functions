@@ -12,8 +12,8 @@ exports.onUpdateAuthor = functions
       const data = change.after.data();
       const beforeData = change.before.data();
       const fields = Object.keys(data);
-      if(!(fields.includes('name') || fields.includes('profile_picture_url'))){
-        return false
+      if (!(fields.includes("name") || fields.includes("profile_picture_url"))) {
+        return false;
       }
       const authorRef = db.doc("authors", context.params.authorId);
       const newData = ["id", "name", "profile_picture_url"].reduce((acc, v) => {
@@ -39,16 +39,16 @@ exports.onUpdateAuthor = functions
       const query = comColl.where("authors", "array-contains", authorRef);
       return query.get().then((snap) => {
         const commDocs = Object.values(snap.docs);
-        
+
         const promises = [];
         for (let i = 0; i < commDocs.length; i++) {
           const newPromise = commDocs[i].ref.update({
-            authors_data: admin.firestore.FieldValue.arrayRemove(oldData)
+            authors_data: admin.firestore.FieldValue.arrayRemove(oldData),
           }).then(() => {
             return commDocs[i].ref.update({
-              authors_data: admin.firestore.FieldValue.arrayUnion(newData)
-            })
-          })
+              authors_data: admin.firestore.FieldValue.arrayUnion(newData),
+            });
+          });
           promises.push(newPromise);
         }
         return Promise.all(promises);
