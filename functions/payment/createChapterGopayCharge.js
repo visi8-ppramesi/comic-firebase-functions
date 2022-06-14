@@ -8,9 +8,9 @@ exports.createChapterGopayCharge = functions
     .https
     .onCall((data, context) => {
       const createChapterOrder = (orderId) => {
-        const {grossAmount} = data.transactionDetails;
+        const {grossAmount, userId} = data.transactionDetails;
         const {chapterId, comicId, chapterNum, comicName} = data.chapterDetails;
-        return db.collection("users").doc(data.uid).collection("orders").add({
+        return db.collection("users").doc(userId).collection("orders").add({
           status: "open",
           order_id: orderId,
           total_amount: grossAmount,
@@ -31,7 +31,7 @@ exports.createChapterGopayCharge = functions
       const {fetchGopayCharge} = require("../utils/gopay.js");
       const {v4} = require("uuid");
       const orderId = v4();
-      return createChapterOrder(data, orderId).then(() => {
+      return createChapterOrder(orderId).then(() => {
         return fetchGopayCharge(data, orderId);
       });
     });
