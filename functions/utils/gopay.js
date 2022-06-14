@@ -34,8 +34,8 @@ exports.fetchGopayCharge = (data, orderId) => {
       "order_id": orderId,
       "tax": tax,
       "fee": fee,
-      "items": items,
     },
+    "items_details": items,
     "customer_details": {
       "first_name": firstName,
       "last_name": lastName,
