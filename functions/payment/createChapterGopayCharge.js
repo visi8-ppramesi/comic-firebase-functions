@@ -7,7 +7,8 @@ exports.createChapterGopayCharge = functions
     .region("asia-east2")
     .https
     .onCall(async (data, context) => {
-      const {grossAmount, userId, tax, fee} = data.transactionDetails;
+      const {userId} = data.customerDetails;
+      const {grossAmount, tax, fee} = data.transactionDetails;
       const itemsDetails = data.itemsDetails;
       let totalItemsPrice = 0;
 
