@@ -26,7 +26,10 @@ exports.createChapterGopayCharge = functions
       const orderId = v4();
 
       return fetchGopayCharge(data, orderId).then((chargeResponse) => {
-        return createChapterOrder(db, data, orderId, chargeResponse);
+        return createChapterOrder(db, data, orderId, chargeResponse)
+            .then((docRef) => {
+              return {docRef, chargeResponse};
+            });
       }).catch((err) => {
         throw new functions
             .https

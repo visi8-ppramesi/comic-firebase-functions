@@ -45,7 +45,7 @@ app.post("/", async (req, res) => {
             const batchProc = db.batch();
             batchProc.update(orderSnap.docs[0].ref, {
               status: "closed",
-              charge_data: body,
+              notification_response: body,
             });
             Object.keys(refs).forEach((comicKey) => {
               batchProc.set(
@@ -60,7 +60,7 @@ app.post("/", async (req, res) => {
             return batchProc.commit();
           // return orderSnap.docs[0].ref.update({
           //   status: 'closed',
-          //   charge_data: body
+          //   notification_response: body
           // }).then(() => {
           //   const promises = Object.keys(refs).forEach((comicKey) => {
           //     return db.collection('users').doc(orderPath['users'])
@@ -78,7 +78,7 @@ app.post("/", async (req, res) => {
           ) {
             return orderSnap.docs[0].ref.update({
               status: body.transaction_status,
-              charge_data: body,
+              notification_response: body,
             });
           }
         });
