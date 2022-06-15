@@ -1,4 +1,18 @@
-exports.createComicOrder = function(db, data, orderId, chargeResponse, status = 'open') {
+const calculateTotal = function(totalItemsPrice, currency) {
+  if (currency == "IDR") {
+    const myTaxRate = 0.11; // change later into settings
+    const myTax = Math.round(totalItemsPrice * myTaxRate);
+    const myFee = 0; // change later into settings
+    return Math.round(totalItemsPrice + myTax + myFee);
+  } else {
+    const myTaxRate = 0.11; // change later into settings
+    const myTax = totalItemsPrice * myTaxRate;
+    const myFee = 0; // change later into settings
+    return totalItemsPrice + myTax + myFee;
+  }
+};
+
+exports.createComicOrder = function(db, data, orderId, chargeResponse, status = "open") {
   const {userId} = data.customerDetails;
   const {grossAmount, tax, fee} = data.transactionDetails;
   const itemsDetails = data.itemsDetails;
@@ -23,7 +37,7 @@ exports.createComicOrder = function(db, data, orderId, chargeResponse, status = 
   });
 };
 
-exports.createChapterOrder = function(db, data, orderId, chargeResponse, status = 'open') {
+exports.createChapterOrder = function(db, data, orderId, chargeResponse, status = "open") {
   const {userId} = data.customerDetails;
   const {grossAmount, tax, fee} = data.transactionDetails;
   const itemsDetails = data.itemsDetails;
@@ -49,6 +63,10 @@ exports.createChapterOrder = function(db, data, orderId, chargeResponse, status 
 };
 
 exports.checkComicsPrice = async function(db, data) {
+  let {currency} = data.transactionDetails;
+  if (!currency) {
+    currency = "IDR";
+  }
   const {grossAmount} = data.transactionDetails;
   const itemsDetails = data.itemsDetails;
   let totalItemsPrice = 0;
@@ -67,10 +85,7 @@ exports.checkComicsPrice = async function(db, data) {
     return checks.reduce((acc, v) => acc && v, true);
   });
 
-  const myTaxRate = 0.11; // change later into settings
-  const myTax = totalItemsPrice * myTaxRate;
-  const myFee = 0; // change later into settings
-  const myTotal = totalItemsPrice + myTax + myFee;
+  const myTotal = calculateTotal(totalItemsPrice, currency);
 
   const totalPriceCheck = myTotal == grossAmount;
 
@@ -78,6 +93,10 @@ exports.checkComicsPrice = async function(db, data) {
 };
 
 exports.checkChaptersPrice = async function(db, data) {
+  let {currency} = data.transactionDetails;
+  if (!currency) {
+    currency = "IDR";
+  }
   const {grossAmount} = data.transactionDetails;
   const itemsDetails = data.itemsDetails;
   let totalItemsPrice = 0;
@@ -97,10 +116,7 @@ exports.checkChaptersPrice = async function(db, data) {
     return checks.reduce((acc, v) => acc && v, true);
   });
 
-  const myTaxRate = 0.11; // change later into settings
-  const myTax = totalItemsPrice * myTaxRate;
-  const myFee = 0; // change later into settings
-  const myTotal = totalItemsPrice + myTax + myFee;
+  const myTotal = calculateTotal(totalItemsPrice, currency);
 
   const totalPriceCheck = myTotal == grossAmount;
 

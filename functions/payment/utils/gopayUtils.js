@@ -9,7 +9,11 @@ const buildParameter = function(paymentType, itemsDetails, transactionDetails, c
 };
 
 exports.fetchGopayCharge = (data, orderId) => {
+  let {currency} = data.transactionDetails;
   const {grossAmount, tax, fee} = data.transactionDetails;
+  if (!currency) {// assume IDR
+    currency = "IDR";
+  }
   const {email, fullName} = data.customerDetails;
   const itemsDetails = data.itemsDetails;
   const items = itemsDetails.map((itemDetails) => {
@@ -52,6 +56,7 @@ exports.fetchGopayCharge = (data, orderId) => {
   const transactionDetails = {
     "gross_amount": grossAmount,
     "order_id": orderId,
+    "currency": currency,
     "tax": tax,
     "fee": fee,
   };

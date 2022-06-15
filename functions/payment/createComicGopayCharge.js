@@ -16,7 +16,9 @@ exports.createComicGopayCharge = functions
       const {checkComicsPrice, createComicOrder} = require("./utils/paymentUtils.js");
       const checkPrice = await checkComicsPrice(db, data);
       if (!checkPrice) {
-        return "price check failed";
+        throw new functions
+            .https
+            .HttpsError("invalid-argument", "Price error");
       }
 
       const {fetchGopayCharge} = require("./utils/gopayUtils.js");
@@ -25,6 +27,10 @@ exports.createComicGopayCharge = functions
 
       return fetchGopayCharge(data, orderId).then((chargeResponse) => {
         return createComicOrder(db, data, orderId, chargeResponse);
+      }).catch((err) => {
+        throw new functions
+            .https
+            .HttpsError("internal", "Either charge or create order document error", err);
       });
       // return createComicOrder(db, data, orderId).then(() => {
       //   return fetchGopayCharge(data, orderId);

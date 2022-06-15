@@ -16,7 +16,9 @@ exports.createChapterGopayCharge = functions
       const {checkChaptersPrice, createChapterOrder} = require("./utils/paymentUtils.js");
       const checkPrice = await checkChaptersPrice(db, data);
       if (!checkPrice) {
-        return "price check failed";
+        throw new functions
+            .https
+            .HttpsError("invalid-argument", "Price error");
       }
 
       const {fetchGopayCharge} = require("./utils/gopayUtils.js");
@@ -25,6 +27,10 @@ exports.createChapterGopayCharge = functions
 
       return fetchGopayCharge(data, orderId).then((chargeResponse) => {
         return createChapterOrder(db, data, orderId, chargeResponse);
+      }).catch((err) => {
+        throw new functions
+            .https
+            .HttpsError("internal", "Either charge or create order document error", err);
       });
       // return createChapterOrder(db, data, orderId).then(() => {
       //   return fetchGopayCharge(data, orderId);
