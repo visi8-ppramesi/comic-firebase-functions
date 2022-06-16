@@ -38,7 +38,7 @@ exports.createComicOrder = function(db, data, orderId, chargeResponse, status = 
       price: itemPrice,
     };
   });
-  return db.collection("users").doc(userId).collection("orders").add({
+  return db.collection("users").doc(userId).collection("orders").doc(orderId).set({
     status: status,
     order_id: orderId,
     total_amount: grossAmount,
@@ -63,7 +63,7 @@ exports.createChapterOrder = function(db, data, orderId, chargeResponse, status 
       price: itemPrice,
     };
   });
-  return db.collection("users").doc(userId).collection("orders").add({
+  return db.collection("users").doc(userId).collection("orders").doc(orderId).set({
     status: status,
     order_id: orderId,
     total_amount: grossAmount,
