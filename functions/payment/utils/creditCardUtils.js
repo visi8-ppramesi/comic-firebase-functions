@@ -1,6 +1,6 @@
 import {buildParameter} from './paymentUtils.js'
 
-exports.fetchGopayCharge = (data, orderId) => {
+exports.fetchCreditCardCharge = (data, orderId, ccToken) => {
   let {currency} = data.transactionDetails;
   const {grossAmount, tax, fee} = data.transactionDetails;
   if (!currency) {// assume IDR
@@ -60,10 +60,10 @@ exports.fetchGopayCharge = (data, orderId) => {
   };
 
   const extraParams = {
-    "gopay": {
-      "enable_callback": true,
-      "callback_url": process.env.MIDTRANS_CALLBACK_URL,
-    },
+    "credit_card":{
+        "token_id": ccToken,
+        "authentication": true
+    }
   };
 
   const parameter = buildParameter(

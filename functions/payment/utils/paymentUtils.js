@@ -12,6 +12,18 @@ const calculateTotal = function(totalItemsPrice, currency) {
   }
 };
 
+const buildParameter = function(paymentType, itemsDetails, transactionDetails, customerDetails, extraParams) {
+  return {
+    "payment_type": paymentType,
+    "transaction_details": transactionDetails,
+    "items_details": itemsDetails,
+    "customer_details": customerDetails,
+    ...extraParams,
+  };
+};
+
+exports.buildParameter = buildParameter
+
 exports.createComicOrder = function(db, data, orderId, chargeResponse, status = "open") {
   const {userId} = data.customerDetails;
   const {grossAmount, tax, fee} = data.transactionDetails;
