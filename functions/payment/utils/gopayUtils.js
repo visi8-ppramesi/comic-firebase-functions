@@ -1,4 +1,4 @@
-import {buildParameter} from './paymentUtils.js'
+const {buildParameter} = require("./paymentUtils.js");
 
 exports.fetchGopayCharge = (data, orderId) => {
   let {currency} = data.transactionDetails;
@@ -40,7 +40,7 @@ exports.fetchGopayCharge = (data, orderId) => {
 
   const midtransClient = require("midtrans-client");
   const core = new midtransClient.CoreApi({
-    isProduction: process.env.MIDTRANS_MODE == 'prod',
+    isProduction: process.env.MIDTRANS_MODE == "prod",
     serverKey: process.env.MIDTRANS_SERVER_KEY,
     clientKey: process.env.MIDTRANS_CLIENT_KEY,
   });

@@ -22,7 +22,7 @@ const buildParameter = function(paymentType, itemsDetails, transactionDetails, c
   };
 };
 
-exports.buildParameter = buildParameter
+exports.buildParameter = buildParameter;
 
 exports.createComicOrder = function(db, data, orderId, chargeResponse, status = "open") {
   const {userId} = data.customerDetails;

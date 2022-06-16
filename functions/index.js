@@ -27,6 +27,8 @@ const {
 } = require("./author/onChangeAuthor.js");
 exports.onUpdateAuthor = onUpdateAuthor;
 
+exports.paymentWebhook = require("./payment/paymentWebhook.js");
+
 // const functions = require("firebase-functions");
 
 // // Create and Deploy Your First Cloud Functions

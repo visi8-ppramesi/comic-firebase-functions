@@ -1,4 +1,4 @@
-import {buildParameter} from './paymentUtils.js'
+const {buildParameter} = require("./paymentUtils.js");
 
 exports.fetchCreditCardCharge = (data, orderId, ccToken) => {
   let {currency} = data.transactionDetails;
@@ -40,7 +40,7 @@ exports.fetchCreditCardCharge = (data, orderId, ccToken) => {
 
   const midtransClient = require("midtrans-client");
   const core = new midtransClient.CoreApi({
-    isProduction: process.env.MIDTRANS_MODE == 'prod',
+    isProduction: process.env.MIDTRANS_MODE == "prod",
     serverKey: process.env.MIDTRANS_SERVER_KEY,
     clientKey: process.env.MIDTRANS_CLIENT_KEY,
   });
@@ -60,10 +60,10 @@ exports.fetchCreditCardCharge = (data, orderId, ccToken) => {
   };
 
   const extraParams = {
-    "credit_card":{
-        "token_id": ccToken,
-        "authentication": true
-    }
+    "credit_card": {
+      "token_id": ccToken,
+      "authentication": true,
+    },
   };
 
   const parameter = buildParameter(
