@@ -8,6 +8,9 @@ exports.viewCountUpdater = require("./comics/viewCountUpdater.js");
 exports.createChapterGopayCharge = require("./payment/createChapterGopayCharge.js");
 exports.createComicGopayCharge = require("./payment/createComicGopayCharge.js");
 
+exports.createChapterCreditCardCharge = require("./payment/createChapterCreditCardCharge.js");
+exports.createComicCreditCardCharge = require("./payment/createComicCreditCardCharge.js");
+
 const {
   onUpdateChapter,
   onCreateChapter,

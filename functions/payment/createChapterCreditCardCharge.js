@@ -25,7 +25,7 @@ exports.createChapterCreditCardCharge = functions
       const {v4} = require("uuid");
       const orderId = v4();
 
-      return fetchCreditCardCharge(data, orderId, data.creditCardDetails.token).then((chargeResponse) => {
+      return fetchCreditCardCharge(data, orderId, data.creditCardDetails.tokenId).then((chargeResponse) => {
         return createChapterOrder(db, data, orderId, chargeResponse)
             .then((docRef) => {
               return {docRef, chargeResponse};
