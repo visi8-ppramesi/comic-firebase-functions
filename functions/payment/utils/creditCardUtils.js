@@ -67,7 +67,7 @@ exports.fetchCreditCardCharge = (data, orderId, ccToken) => {
   };
 
   const parameter = buildParameter(
-      "gopay",
+      "credit_card",
       items,
       transactionDetails,
       customerDetails,
