@@ -6,7 +6,7 @@ const db = admin.firestore();
 exports.onUpdateChapter = functions
     .region("asia-east2")
     .firestore
-    .document("/comics/{comicId}/chapter/{chapterId}")
+    .document("/comics/{comicId}/chapters/{chapterId}")
     // eslint-disable-next-line no-unused-vars
     .onUpdate((snap, context) => {
       const comicId = context.params.comicId;
@@ -18,10 +18,20 @@ exports.onUpdateChapter = functions
             .then((comicDoc) => {
               const {chapters_data: chapters} = comicDoc.data();
               const oldChapterData = chapters.find((v) => v.id == chapterId);
-              const newChapterData = Object.assign({}, oldChapterData);
-              Object.keys(oldChapterData).forEach((key) => {
+
+              const chapterDataKeys = [
+                "chapter_number",
+                "chapter_preview_url",
+                "price",
+                "release_date",
+                "view_count",
+              ];
+              const newChapterData = {};
+              chapterDataKeys.forEach((key) => {
                 newChapterData[key] = newData[key];
               });
+              newChapterData.id = context.params.chapterId;
+
               transaction.update(comicRef, {
                 chapters_data: admin.firestore.FieldValue.arrayRemove(oldChapterData),
               });
@@ -45,11 +55,11 @@ exports.onUpdateChapter = functions
 exports.onCreateChapter = functions
     .region("asia-east2")
     .firestore
-    .document("/comics/{comicId}/chapter/{chapterId}")
+    .document("/comics/{comicId}/chapters/{chapterId}")
     // eslint-disable-next-line no-unused-vars
     .onCreate((snap, context) => {
       const comicId = context.params.comicId;
-      const newData = snap.after.data();
+      const newData = snap.data();
       const comicRef = db.collection("comics").doc(comicId);
       return db.runTransaction((transaction) => {
         return transaction.get(comicRef)
@@ -58,7 +68,6 @@ exports.onCreateChapter = functions
               const chapterDataKeys = [
                 "chapter_number",
                 "chapter_preview_url",
-                "id",
                 "price",
                 "release_date",
                 "view_count",
@@ -67,6 +76,7 @@ exports.onCreateChapter = functions
               chapterDataKeys.forEach((key) => {
                 newChapterData[key] = newData[key];
               });
+              newChapterData.id = context.params.chapterId;
 
               transaction.update(comicRef, {
                 chapters_data: admin.firestore.FieldValue.arrayUnion(newChapterData),
@@ -85,7 +95,7 @@ exports.onCreateChapter = functions
 exports.onDeleteChapter = functions
     .region("asia-east2")
     .firestore
-    .document("/comics/{comicId}/chapter/{chapterId}")
+    .document("/comics/{comicId}/chapters/{chapterId}")
     // eslint-disable-next-line no-unused-vars
     .onDelete((snap, context) => {
       const comicId = context.params.comicId;
