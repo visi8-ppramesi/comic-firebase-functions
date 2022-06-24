@@ -61,30 +61,71 @@ exports.onCreateChapter = functions
       const comicId = context.params.comicId;
       const newData = snap.data();
       const comicRef = db.collection("comics").doc(comicId);
-      return db.runTransaction((transaction) => {
-        return transaction.get(comicRef)
-        // eslint-disable-next-line no-unused-vars
-            .then((comicDoc) => {
-              const chapterDataKeys = [
-                "chapter_number",
-                "chapter_preview_url",
-                "price",
-                "release_date",
-                "view_count",
-              ];
-              const newChapterData = {};
-              chapterDataKeys.forEach((key) => {
-                newChapterData[key] = newData[key];
-              });
-              newChapterData.id = context.params.chapterId;
-
-              transaction.update(comicRef, {
-                chapters_data: admin.firestore.FieldValue.arrayUnion(newChapterData),
-                last_update: new Date(),
-              });
+      const usersRef = db.collection("users").where("comic_subscriptions", "array-contains", comicRef);
+      const setFeed = db.runTransaction((transaction) => {
+        return transaction.get(usersRef)
+            .then((userSnap) => {
+              if (!userSnap.empty) {
+                const userDocs = Object.values(userSnap.docs);
+                for (let i = 0; i < userDocs.length; i++) {
+                  const notificationRef = db.collection("notifications").doc(userDocs[i].id)
+                  transaction.set(notificationRef, {
+                    unread_count: admin.firestore.FieldValue.increment(1)
+                  }, { merge: true })
+                  const feedRef = notificationRef.collection("comics").doc();
+                  transaction.set(feedRef, {
+                    created_date: new Date(),
+                    comic: db.collection("comics").doc(comicId),
+                    chapter: db.collection("comics").doc(comicId).collection("chapters").doc(context.params.chapterId),
+                    unread: true,
+                  });
+                }
+              }
             });
       });
 
+      const chapterDataKeys = [
+        "chapter_number",
+        "chapter_preview_url",
+        "price",
+        "release_date",
+        "view_count",
+      ];
+      const newChapterData = {};
+      chapterDataKeys.forEach((key) => {
+        newChapterData[key] = newData[key];
+      });
+      newChapterData.id = context.params.chapterId;
+
+      const updateComic = comicRef.update({
+        chapters_data: admin.firestore.FieldValue.arrayUnion(newChapterData),
+        last_update: new Date(),
+      });
+
+      // const updateComic = db.runTransaction((transaction) => {
+      //   return transaction.get(comicRef)
+      //   // eslint-disable-next-line no-unused-vars
+      //       .then((comicDoc) => {
+      //         const chapterDataKeys = [
+      //           "chapter_number",
+      //           "chapter_preview_url",
+      //           "price",
+      //           "release_date",
+      //           "view_count",
+      //         ];
+      //         const newChapterData = {};
+      //         chapterDataKeys.forEach((key) => {
+      //           newChapterData[key] = newData[key];
+      //         });
+      //         newChapterData.id = context.params.chapterId;
+
+      //         transaction.update(comicRef, {
+      //           chapters_data: admin.firestore.FieldValue.arrayUnion(newChapterData),
+      //           last_update: new Date(),
+      //         });
+      //       });
+      // });
+      return Promise.all([setFeed, updateComic]);
       // return db.collection("comics")
       //     .doc(comicId)
       //     .update({
