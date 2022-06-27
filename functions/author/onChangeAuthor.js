@@ -15,7 +15,7 @@ exports.onUpdateAuthor = functions
       if (!(fields.includes("name") || fields.includes("profile_picture_url"))) {
         return false;
       }
-      const authorRef = db.doc("authors", context.params.authorId);
+      const authorRef = db.collection("authors").doc(context.params.authorId);
       const newData = ["id", "name", "profile_picture_url"].reduce((acc, v) => {
         if (v == "id") {
           acc[v] = authorRef;

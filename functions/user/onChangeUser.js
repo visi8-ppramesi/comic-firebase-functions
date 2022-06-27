@@ -14,7 +14,7 @@ exports.onUpdateUser = functions
       if (!(fields.includes("name") || fields.includes("profile_image_url"))) {
         return false;
       }
-      const userRef = db.doc("users", context.params.userId);
+      const userRef = db.collection("users").doc(context.params.userId);
       const newData = ["id", "name", "profile_image_url"].reduce((acc, v) => {
         if (v == "id") {
           acc[v] = userRef;

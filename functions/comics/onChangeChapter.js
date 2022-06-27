@@ -68,10 +68,10 @@ exports.onCreateChapter = functions
               if (!userSnap.empty) {
                 const userDocs = Object.values(userSnap.docs);
                 for (let i = 0; i < userDocs.length; i++) {
-                  const notificationRef = db.collection("notifications").doc(userDocs[i].id)
+                  const notificationRef = db.collection("notifications").doc(userDocs[i].id);
                   transaction.set(notificationRef, {
-                    unread_count: admin.firestore.FieldValue.increment(1)
-                  }, { merge: true })
+                    unread_count: admin.firestore.FieldValue.increment(1),
+                  }, {merge: true});
                   const feedRef = notificationRef.collection("comics").doc();
                   transaction.set(feedRef, {
                     created_date: new Date(),
