@@ -21,6 +21,11 @@ exports.onCreateChapter = onCreateChapter;
 exports.onDeleteChapter = onDeleteChapter;
 
 const {
+  onCreateComic,
+} = require("./comics/onChangeComic.js");
+exports.onCreateComic = onCreateComic;
+
+const {
   onUpdateUser,
 } = require("./user/onChangeUser.js");
 exports.onUpdateUser = onUpdateUser;

@@ -60,6 +60,21 @@ exports.onCreateChapter = functions
     .onCreate((snap, context) => {
       const comicId = context.params.comicId;
       const newData = snap.data();
+
+      const chapterCounterAll = db.runTransaction((transaction) => {
+        for (let k = 0; k < 10; k++) {
+          const ref = db.collection("comics")
+              .doc(context.params.comicId)
+              .collection("chapters")
+              .doc(context.params.chapterId)
+              .collection("counters")
+              .doc(k.toString());
+          transaction.set(ref, {
+            view_count: 0,
+          });
+        }
+      });
+
       const comicRef = db.collection("comics").doc(comicId);
       const usersRef = db.collection("users").where("comic_subscriptions", "array-contains", comicRef);
       const setFeed = db.runTransaction((transaction) => {
@@ -125,7 +140,7 @@ exports.onCreateChapter = functions
       //         });
       //       });
       // });
-      return Promise.all([setFeed, updateComic]);
+      return Promise.all([setFeed, updateComic, chapterCounterAll]);
       // return db.collection("comics")
       //     .doc(comicId)
       //     .update({
