@@ -9,15 +9,15 @@ exports.onCreateComic = functions
     .document("/comics/{comicId}")
     // eslint-disable-next-line no-unused-vars
     .onCreate((snap, context) => {
-      return db.runTransaction((transaction) => {
-        for (let k = 0; k < 10; k++) {
-          const ref = db.collection("comics")
-              .doc(context.params.comicId)
-              .collection("counters")
-              .doc(k.toString());
-          transaction.set(ref, {
-            view_count: 0,
-          });
-        }
-      });
+      const batch = db.batch();
+      for (let k = 0; k < 10; k++) {
+        const ref = db.collection("comics")
+            .doc(context.params.comicId)
+            .collection("counters")
+            .doc(k.toString());
+        batch.set(ref, {
+          view_count: 0,
+        });
+      }
+      return batch.commit();
     });
