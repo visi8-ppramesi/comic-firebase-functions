@@ -59,7 +59,23 @@ exports.onCreateChapter = functions
     // eslint-disable-next-line no-unused-vars
     .onCreate((snap, context) => {
       const comicId = context.params.comicId;
+      const chapterId = context.params.chapterId;
       const newData = snap.data();
+
+      const batch = db.batch();
+      for (let k = 0; k < 10; k++) {
+        const ref = db.collection("comics")
+            .doc(comicId)
+            .collection("chapters")
+            .doc(chapterId)
+            .collection("counters")
+            .doc(k.toString());
+        batch.set(ref, {
+          view_count: 0,
+        });
+      }
+      const chapterCounterAll = batch.commit();
+
       const comicRef = db.collection("comics").doc(comicId);
       const usersRef = db.collection("users").where("comic_subscriptions", "array-contains", comicRef);
       const setFeed = db.runTransaction((transaction) => {
@@ -76,7 +92,7 @@ exports.onCreateChapter = functions
                   transaction.set(feedRef, {
                     created_date: new Date(),
                     comic: db.collection("comics").doc(comicId),
-                    chapter: db.collection("comics").doc(comicId).collection("chapters").doc(context.params.chapterId),
+                    chapter: db.collection("comics").doc(comicId).collection("chapters").doc(chapterId),
                     unread: true,
                   });
                 }
@@ -125,7 +141,7 @@ exports.onCreateChapter = functions
       //         });
       //       });
       // });
-      return Promise.all([setFeed, updateComic]);
+      return Promise.all([setFeed, updateComic, chapterCounterAll]);
       // return db.collection("comics")
       //     .doc(comicId)
       //     .update({
