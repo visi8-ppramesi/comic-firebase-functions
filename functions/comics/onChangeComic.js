@@ -17,40 +17,47 @@ exports.onUpdateComic = functions
       const {authors_data: newAuthorsData, tags: newTags, categories: newCategories, title: newTitle} = snap.after.data();
       const {authors_data: oldAuthorsData, tags: oldTags, categories: oldCategories, title: oldTitle} = snap.before.data();
 
-      const newAuthorsName = newAuthorsData.map((author) => author.name);
-      const oldAuthorsName = oldAuthorsData.map((author) => author.name);
       const newKeywords = [];
       const oldKeywords = [];
-      if (!isEqualUnordered(newAuthorsName, oldAuthorsName)) {
-        newKeywords.push(...new Set(_.flatten(newAuthorsName.map((author) => author.split(" ")))));
-        oldKeywords.push(...new Set(_.flatten(oldAuthorsName.map((author) => author.split(" ")))));
+      if (!_.isNil(newAuthorsData)) {
+        const newAuthorsName = newAuthorsData.map((author) => author.name);
+        if (!_.isNil(oldAuthorsData)) {
+          const oldAuthorsName = oldAuthorsData.map((author) => author.name);
+          if (!isEqualUnordered(newAuthorsName, oldAuthorsName)) {
+            newKeywords.push(...new Set(_.flatten(newAuthorsName.map((author) => author.split(" ")))));
+            oldKeywords.push(...new Set(_.flatten(oldAuthorsName.map((author) => author.split(" ")))));
+          }
+        } else {
+          newKeywords.push(...new Set(_.flatten(newAuthorsName.map((author) => author.split(" ")))));
+        }
       }
 
-      if (!isEqualUnordered(newTags, oldTags)) {
+      if (!_.isNil(newTags) && !isEqualUnordered(newTags, oldTags)) {
         newKeywords.push(...new Set(newTags));
         oldKeywords.push(...new Set(oldTags));
       }
 
-      if (!isEqualUnordered(newCategories, oldCategories)) {
+      if (!_.isNil(newCategories) && !isEqualUnordered(newCategories, oldCategories)) {
         newKeywords.push(...new Set(newCategories));
         oldKeywords.push(...new Set(oldCategories));
       }
 
-      if (newTitle != oldTitle) {
+      if (!_.isNil(newTitle) && newTitle != oldTitle) {
         newKeywords.push(...new Set(newTitle.split(" ")));
         oldKeywords.push(...new Set(oldTitle.split(" ")));
       }
 
       if (newKeywords.length > 0) {
+        functions.logger.log("updating comic keywords");
         const batch = db.batch();
         const comicRef = db.collection("comics").doc(comicId);
 
         batch.update(comicRef, {
-          tags: admin.firestore.FieldValue.arrayRemove(...oldKeywords),
+          keywords: admin.firestore.FieldValue.arrayRemove(...oldKeywords),
         });
 
         batch.update(comicRef, {
-          tags: admin.firestore.FieldValue.arrayUnion(...newKeywords),
+          keywords: admin.firestore.FieldValue.arrayUnion(...newKeywords),
         });
 
         return batch.commit();
@@ -69,16 +76,31 @@ exports.onCreateComic = functions
       const _ = require("lodash");
       const comicId = context.params.comicId;
       const {authors_data: newAuthorsData, tags: newTags, categories: newCategories, title: newTitle} = snap.data();
-      const newAuthorsName = newAuthorsData.map((author) => author.name);
       const newKeywords = [];
-      newKeywords.push(...new Set(_.flatten(newAuthorsName.map((author) => author.split(" ")))));
-      newKeywords.push(...new Set(newTags));
-      newKeywords.push(...new Set(newCategories));
-      newKeywords.push(...new Set(newTitle.split(" ")));
+      if (!_.isNil(newAuthorsData)) {
+        const newAuthorsName = newAuthorsData.map((author) => author.name);
+        newKeywords.push(...new Set(_.flatten(newAuthorsName.map((author) => author.split(" ")))));
+      }
+      if (!_.isNil(newTags)) {
+        newKeywords.push(...new Set(newTags));
+      }
+      if (!_.isNil(newCategories)) {
+        newKeywords.push(...new Set(newCategories));
+      }
+      if (!_.isNil(newTitle)) {
+        newKeywords.push(...new Set(newTitle.split(" ")));
+      }
 
-      const keywordChange = db.collection("comics").doc(comicId).update({
-        tags: admin.firestore.FieldValue.arrayUnion(...newKeywords),
-      });
+      let keywordChange;
+
+      if (newKeywords.length > 0) {
+        functions.logger.log("updating comic keywords after creation");
+        keywordChange = db.collection("comics").doc(comicId).update({
+          keywords: admin.firestore.FieldValue.arrayUnion(...newKeywords),
+        });
+      } else {
+        keywordChange = Promise.resolve(true);
+      }
 
       // increment item counter in settings collection
       const counterRef = db.collection("settings").doc("comic_counter");
