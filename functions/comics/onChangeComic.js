@@ -126,5 +126,22 @@ exports.onDeleteComic = functions
     // eslint-disable-next-line no-unused-vars
     .onDelete((snap, context) => {
       const counterRef = db.collection("settings").doc("comic_counter");
-      return counterRef.update({value: admin.firestore.FieldValue.increment(-1)});
+      const globalCounterPromise = counterRef.update({value: admin.firestore.FieldValue.increment(-1)});
+
+      const deleteCounters = db.collection("comics")
+          .doc(context.params.comicId)
+          .collection("counters")
+          .get()
+          .then((snapshot) => {
+            if (snapshot.empty) {
+              return Promise.resolve(true);
+            }
+            const batch = db.batch();
+            snapshot.forEach((doc) => {
+              batch.delete(doc.ref);
+            });
+            return batch.commit();
+          });
+
+      return Promise.all([globalCounterPromise, deleteCounters]);
     });

@@ -13,6 +13,85 @@ app.use(express.json());
 app.post("/", async (req, res) => {
   const {body} = req;
   try {
+    const orderSnap = await db.collectionGroup("orders")
+        .where("order_id", "==", body.order_id)
+        .get()
+
+    if(orderSnap.empty){
+      res.status(404).send({status: "error", error: "Order not found"});
+      return;
+    }
+
+    if (
+      body.transaction_status == "settlement" ||
+      body.transaction_status == "capture" ||
+      body.transaction_status == "authorize"
+    ) {
+      const {getObjectPath} = require("../utils/pathUtils.js");
+      const orderData = orderSnap.docs[0].data();
+      const refs = orderData.items.reduce((acc, item) => {
+        const itemPath = getObjectPath(item.reference.path.split("/"));
+        if (acc[itemPath["comics"]]) {
+          if (itemPath["chapters"]) {
+            acc[itemPath["comics"]].push(item.reference);
+          } else {
+            acc[itemPath["comics"]].push("all");
+          }
+        } else {
+          if (itemPath["chapters"]) {
+            acc[itemPath["comics"]] = [item.reference];
+          } else {
+            acc[itemPath["comics"]] = ["all"];
+          }
+        }
+        return acc;
+      }, {});
+      const orderPath = getObjectPath(orderSnap.docs[0].ref.path.split("/"));
+      const batchProc = db.batch();
+      batchProc.update(orderSnap.docs[0].ref, {
+        status: "closed",
+        notification_response: body,
+      });
+      Object.keys(refs).forEach((comicKey) => {
+        batchProc.set(
+            db.collection("users").doc(orderPath["users"])
+                .collection("purchased_comics").doc(comicKey),
+            {
+              chapters: admin.firestore.FieldValue.arrayUnion(...refs[comicKey]),
+            },
+            {merge: true},
+        );
+      });
+       await batchProc.commit();
+    } else if (
+      body.transaction_status == "deny" ||
+      body.transaction_status == "cancel" ||
+      body.transaction_status == "expire" ||
+      body.transaction_status == "failure"
+    ) {
+      await orderSnap.docs[0].ref.update({
+        status: body.transaction_status,
+        notification_response: body,
+      });
+    }
+    res.status(200).send({status: "ok"});
+    return;
+  } catch (error) {
+    res.status(500).send({status: "error", error});
+    throw error;
+  }
+});
+
+exports.paymentWebhook = functions
+    .region("asia-east2")
+    .https
+    .onRequest(app);
+
+
+/*
+
+  const {body} = req;
+  try {
     await db.collectionGroup("orders")
         .where("order_id", "==", body.order_id)
         .get()
@@ -86,9 +165,4 @@ app.post("/", async (req, res) => {
   } catch (error) {
     res.status(500).send({status: "error", error});
   }
-});
-
-exports.paymentWebhook = functions
-    .region("asia-east2")
-    .https
-    .onRequest(app);
+  */

@@ -158,7 +158,7 @@ exports.onDeleteChapter = functions
       const comicId = context.params.comicId;
       const chapterId = context.params.chapterId;
       const comicRef = db.collection("comics").doc(comicId);
-      return db.runTransaction((transaction) => {
+      const comicUpdates = db.runTransaction((transaction) => {
         return transaction.get(comicRef)
             .then((comicDoc) => {
               const {chapters_data: chapters} = comicDoc.data();
@@ -168,6 +168,25 @@ exports.onDeleteChapter = functions
               });
             });
       });
+
+      const deleteCounters = db.collection("comics")
+          .doc(comicId)
+          .collection("chapters")
+          .doc(chapterId)
+          .collection("counters")
+          .get()
+          .then((snapshot) => {
+            if (snapshot.empty) {
+              return Promise.resolve(true);
+            }
+            const batch = db.batch();
+            snapshot.docs.forEach((doc) => {
+              batch.delete(doc.ref);
+            });
+            return batch.commit();
+          })
+
+      return Promise.all([comicUpdates, deleteCounters])
 
       // return db.collection("comics")
       //     .doc(comicId)
