@@ -41,9 +41,11 @@ exports.viewCountUpdater = functions
         const promises = [];
         if (comicIds.length > 0) {
           comicIds.forEach((comicId) => {
-            db.collection("comics").doc(comicId).update({
-              view_count: comicAggregated[comicId],
-            });
+            promises.push(
+                db.collection("comics").doc(comicId).update({
+                  view_count: comicAggregated[comicId],
+                })
+            );
             if (chapterAggregated[comicId] &&
               typeof chapterAggregated[comicId] == "object") {
               const comicCptIds = Object.keys(chapterAggregated[comicId]);
