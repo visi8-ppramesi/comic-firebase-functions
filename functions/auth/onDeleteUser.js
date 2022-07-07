@@ -9,6 +9,7 @@ exports.onDeleteUser = functions
     .user()
     .onDelete((user) => {
       const uid = user.uid;
-      db.collection("user_roles").doc(uid).delete();
-      return db.collection("users").doc(uid).delete();
+      const userRolesDeletePromise = db.collection("user_roles").doc(uid).delete();
+      const userDeletePromise = db.collection("users").doc(uid).delete();
+      return Promise.all([userRolesDeletePromise, userDeletePromise]);
     });

@@ -184,9 +184,9 @@ exports.onDeleteChapter = functions
               batch.delete(doc.ref);
             });
             return batch.commit();
-          })
+          });
 
-      return Promise.all([comicUpdates, deleteCounters])
+      return Promise.all([comicUpdates, deleteCounters]);
 
       // return db.collection("comics")
       //     .doc(comicId)

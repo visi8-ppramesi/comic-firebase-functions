@@ -21,11 +21,22 @@ exports.moveTemporaryFile = functions
         const {temporary_path: temporaryPath, move_path: movePath} = tempFile.data();
         const bucket = storage.bucket();
         const file = bucket.file(temporaryPath);
-        await file.move(movePath);
-        await db.collection("temporary_files").doc(temporaryId).delete();
-        return {
-          path: movePath,
-        };
+        const movePromise = file.move(movePath);
+        const deletePromise = db.collection("temporary_files").doc(temporaryId).delete();
+        return Promise.all([movePromise, deletePromise]).then(([movePromiseResult, deletePromiseResult]) => {
+          return {
+            path: movePath,
+            move_promise_result: movePromiseResult,
+            delete_promise_result: deletePromiseResult,
+          };
+        }).catch((err) => {
+          return {
+            path: movePath,
+            err: err,
+          };
+        });
+        // await file.move(movePath);
+        // await db.collection("temporary_files").doc(temporaryId).delete();
       } else {
         throw new functions.https.HttpsError("invalid-argument", "File does not exist");
       }

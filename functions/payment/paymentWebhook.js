@@ -15,9 +15,9 @@ app.post("/", async (req, res) => {
   try {
     const orderSnap = await db.collectionGroup("orders")
         .where("order_id", "==", body.order_id)
-        .get()
+        .get();
 
-    if(orderSnap.empty){
+    if (orderSnap.empty) {
       res.status(404).send({status: "error", error: "Order not found"});
       return;
     }
@@ -62,7 +62,7 @@ app.post("/", async (req, res) => {
             {merge: true},
         );
       });
-       await batchProc.commit();
+      await batchProc.commit();
     } else if (
       body.transaction_status == "deny" ||
       body.transaction_status == "cancel" ||
