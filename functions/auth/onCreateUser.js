@@ -9,8 +9,9 @@ exports.onCreateUser = functions
     .user()
     .onCreate((user) => {
       const uid = user.uid;
-      db.collection("user_roles").doc(uid).set({roles: ["user"]});
-      return db.collection("users")
+      const setRolePromise = db.collection("user_roles").doc(uid).set({roles: ["user"]});
+      const setEmailVerified = db.collection("users")
           .doc(uid)
           .set({email_verified_at: null}, {merge: true});
+      return Promise.all([setRolePromise, setEmailVerified]);
     });
