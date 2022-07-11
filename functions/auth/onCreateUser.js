@@ -13,5 +13,7 @@ exports.onCreateUser = functions
       const setEmailVerified = db.collection("users")
           .doc(uid)
           .set({email_verified_at: null}, {merge: true});
-      return Promise.all([setRolePromise, setEmailVerified]);
+      const counterUpdate = db.collection("settings").doc("user_counter")
+        .update({value: admin.firestore.FieldValue.increment(1)});
+      return Promise.all([setRolePromise, setEmailVerified, counterUpdate]);
     });

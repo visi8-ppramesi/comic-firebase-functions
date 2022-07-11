@@ -11,5 +11,7 @@ exports.onDeleteUser = functions
       const uid = user.uid;
       const userRolesDeletePromise = db.collection("user_roles").doc(uid).delete();
       const userDeletePromise = db.collection("users").doc(uid).delete();
-      return Promise.all([userRolesDeletePromise, userDeletePromise]);
+      const counterUpdate = db.collection("settings").doc("user_counter")
+        .update({value: admin.firestore.FieldValue.increment(-1)});
+      return Promise.all([userRolesDeletePromise, userDeletePromise, counterUpdate]);
     });
