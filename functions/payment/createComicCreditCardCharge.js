@@ -3,7 +3,7 @@ const {admin} = require("../initializeAdmin.js");
 
 const db = admin.firestore();
 
-exports.createChapterCreditCardCharge = functions
+exports.createComicCreditCardCharge = functions
     .region("asia-east2")
     .https
     .onCall(async (data, context) => {
